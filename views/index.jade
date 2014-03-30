@@ -1,0 +1,14 @@
+extends layout
+
+block content
+	h1= "TV SHOWS LIST"
+	div#container
+		input.search(type="search", placeholder="Type the tvShow name")
+		ul.list#results
+			each tvShow in tvShows
+				li
+					a.tvShowName(href= "/show/" + tvShow.href)!= tvShow.title
+
+	script(src="/bower_components/jquery/dist/jquery.min.js")
+	script(src="/bower_components/listjs/dist/list.min.js")
+	script(src="/javascripts/main.js")
