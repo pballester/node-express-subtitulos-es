@@ -1,9 +1,9 @@
-var request = require('request');
-var cheerio = require('cheerio');
+var request = require('request'),
+    cheerio = require('cheerio');
 
 exports.index = function(req, res) {
     var url = "http://www.subtitulos.es/series",
-        re = /\/(\d.*)/,
+        re = /\/(\d{1,})/,
         tvShowsArray = [],
         $, tvShows, i, tvShowObject, tvShowId, reResult;
     //Get the subtitulos.es tvshows list and pass it to a template

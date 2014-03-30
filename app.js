@@ -1,15 +1,13 @@
-var express = require('express');
-var http = require('http');
-var path = require('path');
-var favicon = require('static-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-
-var routes = require('./routes');
-var show = require('./routes/show');
-
-var app = express();
+var express = require('express'),
+    http = require('http'),
+    path = require('path'),
+    favicon = require('static-favicon'),
+    logger = require('morgan'),
+    cookieParser = require('cookie-parser'),
+    bodyParser = require('body-parser'),
+    routes = require('./routes'),
+    show = require('./routes/show'),
+    app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
