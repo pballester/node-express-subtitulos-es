@@ -1,24 +1,26 @@
 var request = require('request'),
     cheerio = require('cheerio'),
-    async = require('async');
+    async = require('async'),
+    path = require('path'),
+    fs = require('fs'),
+    admZip = require('adm-zip');
 
 exports.show = function(req, res){
 	var urlToGetSeasons = "http://www.subtitulos.es/show/" + req.params.id,
 		reSeason = /\,(\d{1,})\)/,
-		//Spanish language harcoded for now
+		//TODO: Spanish language harcoded
 		reLang = /Español \(España\)/,
+		reFileName = /filename=\"(.*)\"/,
 		arrayFilesToDownload = [],
-		//TODO: REMOVE
-		output_debug = "",
 		downloadCounter = 0,
-		reResult, $, seasons, error, options, urlToGetDownloads, languageDomObjects, i;
+		reResult, $, seasons, error, options, urlToGetDownloads, languageDomObjects, i, fileName, zip, zipPath;
 	//Get the seasons of the tvShow
 	request(urlToGetSeasons, function(err, resp, body) {
 		$ = cheerio.load(body);
 		reResult = reSeason.exec($("body").attr("onload"));
-		if (reResult != null) {
+		if (reResult !== null) {
             seasons = reResult[1];
-            if (seasons != null) {
+            if (seasons !== null) {
 	        	//Get the download page of the subtitles
 				urlToGetDownloads = "http://www.subtitulos.es/ajax_loadShow.php?show="+req.params.id+"&season="+seasons;
 				options = {
@@ -37,20 +39,32 @@ exports.show = function(req, res){
 					}
 					async.series([
 					    function (callback) {
+							zip = new admZip();
 					    	for (i = 0; i < arrayFilesToDownload.length; i++) {
 								options = {
 									url: arrayFilesToDownload[i],
 									headers: {
-										"referer": "http://www.subtitulos.es/"
+										"referer": "http://www.subtitulos.es/",
+										"content-disposition": ""
 									},
 									encoding: "binary"
 								};
 								request(options, function(err, resp, body) {
-									output_debug += body + "\n\n";
-									output_debug += "#################################";
-									output_debug += "\n\n";
+									if (resp.headers['content-disposition'] !== null) {
+										reResult = reFileName.exec(resp.headers['content-disposition']);
+										if (reResult !== null) {
+											fileName = cleanString(reResult[1]);
+										} 
+										else {
+											fileName = "unknown";
+										}
+									} 
+									else {
+										fileName = "unknown";
+									}
+									console.log("Subtitle " + fileName + " downloaded!");
 									downloadCounter++;
-									console.log("Subtitle downloaded!")
+									zip.addFile(fileName, new Buffer(body));
 									if (downloadCounter === arrayFilesToDownload.length) {
 										callback(null);
 									}
@@ -58,8 +72,18 @@ exports.show = function(req, res){
 							}
 					    },
 					    function (callback) {
-					    	console.log(output_debug);
-							res.send(output_debug);
+					    	zipPath = path.join(res.locals.tmpFolder,req.params.id + "-" + seasons + ".zip");
+							zip.writeZip(zipPath);
+							console.log("Zip archive created in "+ zipPath);
+							res.download(zipPath, function(err){
+								fs.unlink(zipPath, function(err) {
+									if(err) {
+										console.log("Error deleting the zip file!");
+										return;
+									}
+									console.log("Zip file deleted!");
+								});
+							});
 							callback(null);
 					    }
 					]);
@@ -76,3 +100,19 @@ exports.show = function(req, res){
         }
 	});
 };
+
+function cleanString(strAccents) {
+	var strAccents = strAccents.split('');
+	var strAccentsOut = new Array();
+	var strAccentsLen = strAccents.length;
+	var accents = 'ÀÁÂÃÄÅàáâãäåÒÓÔÕÕÖØòóôõöøÈÉÊËèéêëðÇçÐÌÍÎÏìíîïÙÚÛÜùúûüÑñŠšŸÿýŽžñÑ';
+	var accentsOut = "AAAAAAaaaaaaOOOOOOOooooooEEEEeeeeeCcDIIIIiiiiUUUUuuuuNnSsYyyZznN";
+	for (var y = 0; y < strAccentsLen; y++) {
+		if (accents.indexOf(strAccents[y]) != -1) {
+			strAccentsOut[y] = accentsOut.substr(accents.indexOf(strAccents[y]), 1);
+		} else
+			strAccentsOut[y] = strAccents[y];
+	}
+	strAccentsOut = strAccentsOut.join('');
+	return strAccentsOut;
+}

@@ -7,7 +7,15 @@ var express = require('express'),
     bodyParser = require('body-parser'),
     routes = require('./routes'),
     show = require('./routes/show'),
-    app = express();
+    fs = require ('fs'),
+    app = express(), tmpFolder;
+
+// setting tmp dir
+tmpFolder =  path.join(__dirname, 'tmp');
+// creating tmp folder if not exists
+if (!fs.existsSync(tmpFolder)) {
+    fs.mkdir(tmpFolder);
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -19,7 +27,15 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+//Inject of global vars
+app.use(function (req, res, next) {
+    res.locals({
+        tmpFolder: tmpFolder
+    });
+    next();
+});
 app.use(app.router);
+
 
 app.get('/', routes.index);
 app.get('/show/:id', show.show);
