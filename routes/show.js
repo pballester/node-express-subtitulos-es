@@ -21,7 +21,7 @@ exports.show = function(req, res){
 		if (reResult !== null) {
 			seasons = reResult[1];
 			if (seasons !== null) {
-			//Get the download page of the subtitles
+				//Get the download page of the subtitles
 				urlToGetDownloads = "http://www.subtitulos.es/ajax_loadShow.php?show="+req.params.id+"&season="+seasons;
 				options = {
 					url: urlToGetDownloads,
