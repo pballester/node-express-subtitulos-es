@@ -1,20 +1,20 @@
 var express = require('express'),
-    http = require('http'),
-    path = require('path'),
-    favicon = require('static-favicon'),
-    logger = require('morgan'),
-    cookieParser = require('cookie-parser'),
-    bodyParser = require('body-parser'),
-    routes = require('./routes'),
-    show = require('./routes/show'),
-    fs = require ('fs'),
-    app = express(), tmpFolder;
+	http = require('http'),
+	path = require('path'),
+	favicon = require('static-favicon'),
+	logger = require('morgan'),
+	cookieParser = require('cookie-parser'),
+	bodyParser = require('body-parser'),
+	routes = require('./routes'),
+	show = require('./routes/show'),
+	fs = require ('fs'),
+	app = express(), tmpFolder;
 
 // setting tmp dir
 tmpFolder =  path.join(__dirname, 'tmp');
 // creating tmp folder if not exists
 if (!fs.existsSync(tmpFolder)) {
-    fs.mkdir(tmpFolder);
+	fs.mkdir(tmpFolder);
 }
 
 // view engine setup
@@ -29,10 +29,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 //Inject of global vars
 app.use(function (req, res, next) {
-    res.locals({
-        tmpFolder: tmpFolder
-    });
-    next();
+	res.locals({
+		tmpFolder: tmpFolder
+	});
+	next();
 });
 app.use(app.router);
 
@@ -42,9 +42,9 @@ app.get('/show/:id', show.show);
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+	var err = new Error('Not Found');
+	err.status = 404;
+	next(err);
 });
 
 /// error handlers
@@ -52,21 +52,21 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
-        res.render('error', {
-            message: err.message,
-            error: err
-        });
-    });
+	app.use(function(err, req, res, next) {
+		res.render('error', {
+			message: err.message,
+			error: err
+		});
+	});
 }
 
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
-    res.render('error', {
-        message: err.message,
-        error: {}
-    });
+	res.render('error', {
+		message: err.message,
+		error: {}
+	});
 });
 
 module.exports = app;

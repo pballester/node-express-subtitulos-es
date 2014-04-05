@@ -1,9 +1,9 @@
 var request = require('request'),
-    cheerio = require('cheerio'),
-    async = require('async'),
-    path = require('path'),
-    fs = require('fs'),
-    admZip = require('adm-zip');
+	cheerio = require('cheerio'),
+	async = require('async'),
+	path = require('path'),
+	fs = require('fs'),
+	admZip = require('adm-zip');
 
 exports.show = function(req, res){
 	var urlToGetSeasons = "http://www.subtitulos.es/show/" + req.params.id,
@@ -19,9 +19,9 @@ exports.show = function(req, res){
 		$ = cheerio.load(body);
 		reResult = reSeason.exec($("body").attr("onload"));
 		if (reResult !== null) {
-            seasons = reResult[1];
-            if (seasons !== null) {
-	        	//Get the download page of the subtitles
+			seasons = reResult[1];
+			if (seasons !== null) {
+			//Get the download page of the subtitles
 				urlToGetDownloads = "http://www.subtitulos.es/ajax_loadShow.php?show="+req.params.id+"&season="+seasons;
 				options = {
 					url: urlToGetDownloads,
@@ -38,9 +38,9 @@ exports.show = function(req, res){
 						}
 					}
 					async.series([
-					    function (callback) {
+						function (callback) {
 							zip = new admZip();
-					    	for (i = 0; i < arrayFilesToDownload.length; i++) {
+							for (i = 0; i < arrayFilesToDownload.length; i++) {
 								options = {
 									url: arrayFilesToDownload[i],
 									headers: {
@@ -70,9 +70,9 @@ exports.show = function(req, res){
 									}
 								});
 							}
-					    },
-					    function (callback) {
-					    	zipPath = path.join(res.locals.tmpFolder,req.params.id + "-" + seasons + ".zip");
+						},
+						function (callback) {
+							zipPath = path.join(res.locals.tmpFolder,req.params.id + "-" + seasons + ".zip");
 							zip.writeZip(zipPath);
 							console.log("Zip archive created in "+ zipPath);
 							res.download(zipPath, function(err){
@@ -85,19 +85,19 @@ exports.show = function(req, res){
 								});
 							});
 							callback(null);
-					    }
+						}
 					]);
 				});
-            }
-        } 
-        else {
-	        //Show error if no season found
-	        error = new Error("No seasons found");
-	        res.render('error', {
-	            message: error.message,
-	            error: error
-	        });
-        }
+			}
+		} 
+		else {
+			//Show error if no season found
+			error = new Error("No seasons found");
+			res.render('error', {
+				message: error.message,
+				error: error
+			});
+		}
 	});
 };
 
