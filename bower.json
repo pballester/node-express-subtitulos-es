@@ -2,13 +2,10 @@
   "name": "node-express-subtitulos-es",
   "version": "0.0.1",
   "license": "MIT",
-  "private": false,
   "ignore": [
     "**/.*",
     "node_modules",
-    "public/bower_components",
-    "test",
-    "tests"
+    "public/bower_components"
   ],
   "dependencies": {
     "listjs": "~1.1.1",
