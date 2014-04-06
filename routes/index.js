@@ -12,14 +12,14 @@ exports.index = function(req, res) {
 		tvShows = $("a","#showindex");
 		for (i = 0; i < tvShows.length; i++) {
 			reResult = re.exec(cheerio(tvShows[i]).attr("href"));
-			if (reResult != null) {
+			if (reResult !== null) {
 				tvShowId = reResult[1];
+				tvShowObject = {
+					title: cheerio(tvShows[i]).text(),
+					href: tvShowId
+				};
+				tvShowsArray.push(tvShowObject);
 			}
-			tvShowObject = {
-				title: cheerio(tvShows[i]).text(),
-				href: tvShowId
-			};
-			tvShowsArray.push(tvShowObject);
 		}
 		res.render('index', { title: "tvShow Subtitle Searcher", tvShows: tvShowsArray});
 	});

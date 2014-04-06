@@ -27,7 +27,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-//Inject of global vars
+//Injection of global variables
 app.use(function (req, res, next) {
 	res.locals({
 		tmpFolder: tmpFolder
@@ -47,8 +47,6 @@ app.use(function(req, res, next) {
 	next(err);
 });
 
-/// error handlers
-
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
@@ -59,7 +57,6 @@ if (app.get('env') === 'development') {
 		});
 	});
 }
-
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
