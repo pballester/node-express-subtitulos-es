@@ -9,6 +9,7 @@ exports.show = function(req, res){
 	var urlToGetSeasons = "http://www.subtitulos.es/show/" + req.params.id,
 		reSeason = /\,(\d{1,})\)/,
 		arrayFilesToDownload = [],
+		downloadCounter = 0,
 		reResult, $, seasons, urlToGetDownloads, i, zip;
 	//Gets the seasons of the tvShow
 	console.log("Searching seasons for tvShow: "+req.params.id);
@@ -57,55 +58,65 @@ exports.show = function(req, res){
 	}
 	function getFilesToDownload(body) {
 		var reLang = /Español \(España\)/,
-			arrayFilesToDownload = [],
-			languageDomObjects;
+			languageDomObjects, fileDownloadObject;
 		$ = cheerio.load(body);
 		languageDomObjects = $(".language");
 		for (i = 0; i < languageDomObjects.length; i++) {
 			if (reLang.test(cheerio(languageDomObjects[i]).text().trim()) && cheerio(languageDomObjects[i]).parent().find("a").length > 0) {
-				arrayFilesToDownload.push(cheerio(languageDomObjects[i]).parent().find("a").attr("href"));
+				fileDownloadObject = {
+					url: cheerio(languageDomObjects[i]).parent().find("a").attr("href"),
+					version: cheerio(languageDomObjects[i]).parent().prevAll().filter(function () { return cheerio(this).children("td.newsClaro[colspan=3]").length > 0 }).first().text().trim()
+				}
+				arrayFilesToDownload.push(fileDownloadObject);
 			}
 		}
 		console.log("Found "+ arrayFilesToDownload.length +" subtitles for tvShow: "+req.params.id);
 		return arrayFilesToDownload;
 	}
 	function downloadSubtitleFiles(callback) {
-		var reFileName = /filename=\"(.*)\"/,
-			downloadCounter = 0,
-			options, fileName;
 		zip = new admZip();
 		for (i = 0; i < arrayFilesToDownload.length; i++) {
-			options = {
-				url: arrayFilesToDownload[i],
-				headers: {
-					"referer": "http://www.subtitulos.es/"
-				},
-				encoding: "binary"
-			};
-			request(options, function(err, resp, body) {
-				fileName = "";
-				if (err) {
-					console.log("Error downloading subtitle with url: "+ options.url +" "+ err);
-					downloadCounter++;
-					return;
-				}
-				if (resp.headers['content-disposition'] !== null) {
-					reResult = reFileName.exec(resp.headers['content-disposition']);
-					if (reResult !== null) {
-						fileName = cleanString(reResult[1]);
-					} 
-				} 
-				if (fileName === "") {
-					fileName = "unknown-"+ (Math.floor(Math.random() * 1000) + 1) + ".srt";
-				}
-				console.log("Subtitle " + fileName + " downloaded");
-				downloadCounter++;
-				zip.addFile(fileName, new Buffer(body));
-				if (downloadCounter === arrayFilesToDownload.length) {
-					callback(null);
-				}
-			});
+			downloadSubtitle(arrayFilesToDownload[i].url, arrayFilesToDownload[i].version, callback);
 		}
+	}
+	function downloadSubtitle (url, version, callback) {
+		var reFileName = /filename=\"(.*)\"/,
+			options, fileName;
+		options = {
+			url: url,
+			headers: {
+				"referer": "http://www.subtitulos.es/"
+			},
+			encoding: "binary"
+		};
+		request(options, function(err, resp, body) {
+			fileName = "";
+			if (err) {
+				console.log("Error downloading subtitle with url: "+ options.url +" "+ err);
+				downloadCounter++;
+				return;
+			}
+			if (resp.headers['content-disposition'] !== null) {
+				reResult = reFileName.exec(resp.headers['content-disposition']);
+				if (reResult !== null) {
+					if (version !== "") {
+						fileName = cleanString(reResult[1].split(".")[0] + " - " + version + ".srt");
+					} 
+					else {
+						fileName = cleanString(reResult[1]);
+					}
+				} 
+			} 
+			if (fileName === "") {
+				fileName = "unknown-"+ (Math.floor(Math.random() * 1000) + 1) + ".srt";
+			}
+			console.log("Subtitle " + fileName + " downloaded");
+			downloadCounter++;
+			zip.addFile(fileName, new Buffer(body));
+			if (downloadCounter === arrayFilesToDownload.length) {
+				callback(null);
+			}
+		});
 	}
 	function createZipFile(callback) {
 		var zipPath;
