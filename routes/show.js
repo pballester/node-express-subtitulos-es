@@ -62,7 +62,7 @@ exports.show = function(req, res){
 		$ = cheerio.load(body);
 		languageDomObjects = $(".language");
 		for (i = 0; i < languageDomObjects.length; i++) {
-			if (reLang.test(cheerio(languageDomObjects[i]).text().trim())) {
+			if (reLang.test(cheerio(languageDomObjects[i]).text().trim()) && cheerio(languageDomObjects[i]).parent().find("a").length > 0) {
 				arrayFilesToDownload.push(cheerio(languageDomObjects[i]).parent().find("a").attr("href"));
 			}
 		}
@@ -83,6 +83,7 @@ exports.show = function(req, res){
 				encoding: "binary"
 			};
 			request(options, function(err, resp, body) {
+				fileName = "";
 				if (err) {
 					console.log("Error downloading subtitle with url: "+ options.url +" "+ err);
 					downloadCounter++;
@@ -93,12 +94,9 @@ exports.show = function(req, res){
 					if (reResult !== null) {
 						fileName = cleanString(reResult[1]);
 					} 
-					else {
-						fileName = "unknown";
-					}
 				} 
-				else {
-					fileName = "unknown";
+				if (fileName === "") {
+					fileName = "unknown-"+ (Math.floor(Math.random() * 1000) + 1) + ".srt";
 				}
 				console.log("Subtitle " + fileName + " downloaded");
 				downloadCounter++;
