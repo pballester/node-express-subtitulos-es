@@ -57,19 +57,19 @@ exports.show = function(req, res){
 		});
 	}
 	function getFilesToDownload(body) {
-		var reLang = /Español \(España\)/,
+		var reLang = /^Español \(España\)$|^Español$/
 			objectLanguages = [
 				{
 					value: "esp",
-					regExp: /Español \(España\)|Español/
+					regExp: /^Español \(España\)$|^Español$/
 				},
 				{
 				  	value: "lat",
-					regExp: /Español \(Latinoamérica\)|Español/
+					regExp: /^Español \(Latinoamérica\)$|^Español$/
 				},
 				{
 					value: "eng",
-					regExp: /English|English \(US\)/
+					regExp: /^English$|^English \(US\)$/
 				}
 			],
 			languageDomObjects, fileDownloadObject;
