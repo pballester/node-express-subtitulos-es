@@ -38,7 +38,7 @@ app.use(app.router);
 
 
 app.get('/', routes.index);
-app.get('/show/:id', show.show);
+app.get('/show/:id/:lang', show.show);
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {

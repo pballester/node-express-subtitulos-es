@@ -4,6 +4,20 @@ var request = require('request'),
 exports.index = function(req, res) {
 	var url = "http://www.subtitulos.es/series",
 		re = /\/(\d{1,})/,
+		objectLanguages = [
+			{
+				name: "Español (España)",
+				value: "esp"
+			},
+			{
+			  	name: "Español (Latinoamérica)",
+				value: "lat"
+			},
+			{
+				name: "English",
+				value: "eng"
+			}
+		],
 		tvShowsArray = [],
 		$, tvShows, i, tvShowObject, tvShowId, reResult;
 	//Get the subtitulos.es tvshows list and pass it to a template
@@ -21,6 +35,6 @@ exports.index = function(req, res) {
 				tvShowsArray.push(tvShowObject);
 			}
 		}
-		res.render('index', { title: "tvShow Subtitle Searcher", tvShows: tvShowsArray});
+		res.render('index', { title: "tvShow Subtitle Searcher", tvShows: tvShowsArray, languages: objectLanguages});
 	});
 };

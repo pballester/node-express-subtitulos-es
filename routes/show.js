@@ -58,7 +58,28 @@ exports.show = function(req, res){
 	}
 	function getFilesToDownload(body) {
 		var reLang = /Español \(España\)/,
+			objectLanguages = [
+				{
+					value: "esp",
+					regExp: /Español \(España\)|Español/
+				},
+				{
+				  	value: "lat",
+					regExp: /Español \(Latinoamérica\)|Español/
+				},
+				{
+					value: "eng",
+					regExp: /English|English \(US\)/
+				}
+			],
 			languageDomObjects, fileDownloadObject;
+		for (i = 0; i < objectLanguages.length; i++) {
+			if (objectLanguages[i].value === req.params.lang) {
+				reLang = objectLanguages[i].regExp;
+				console.log("Selected languange : "+reLang);
+				break;
+			}
+		}
 		$ = cheerio.load(body);
 		languageDomObjects = $(".language");
 		for (i = 0; i < languageDomObjects.length; i++) {
