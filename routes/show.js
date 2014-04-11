@@ -57,7 +57,7 @@ exports.show = function(req, res){
 		});
 	}
 	function getFilesToDownload(body) {
-		var reLang = /^Español \(España\)$|^Español$/
+		var reLang = /^Español \(España\)$|^Español$/,
 			objectLanguages = [
 				{
 					value: "esp",
