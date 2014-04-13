@@ -1,3 +1,5 @@
-node-express-subtitulos-es
+Subtitulos.es subtitle downloader
 ==========================
-Test project
+Download entire season's subtitles in a zip file
+
+http://node-express-subtitulos-es.herokuapp.com/

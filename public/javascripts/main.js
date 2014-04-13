@@ -1,10 +1,4 @@
 $(function(){
-	//Setting up the filter
-	var options = {
-	    valueNames: ['tvShowName']
-	},
-	tvShowList = new List('container', options);
-
 	//Download service with the selected language in the params
 	$(".tvShowName").click(function(e) {
 		var anchorElement = $(e.currentTarget),
@@ -13,4 +7,10 @@ $(function(){
 		e.preventDefault();
 		location.href = currentHref + "/" + selectedLanguageValue;
 	});
+	//Setting up the filter
+	var options = {
+	    valueNames: ['tvShowName']
+	},
+	tvShowList = new List('container', options);
+
 });
