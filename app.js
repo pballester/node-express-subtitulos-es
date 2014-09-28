@@ -3,9 +3,8 @@ var express = require('express'),
 	logger = require('morgan'),
 	serveStatic = require('serve-static'),
 	bodyParser = require('body-parser'),
-	routes = require('./routes'),
-	show = require('./routes/show'),
 	fs = require('fs'),
+	router = require('./router'),
 	app = express(),
 	tmpFolder;
 
@@ -35,8 +34,8 @@ app.use(function(req, res, next) {
 	next();
 });
 
-app.get('/', routes.index);
-app.get('/show/:id/:lang', show.show);
+//Router declaration
+app.use('/', router);
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
