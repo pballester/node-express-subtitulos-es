@@ -10,3 +10,6 @@ node_modules
 
 # Bower components
 public/bower_components
+
+# ST3 Project
+*.sublime-project

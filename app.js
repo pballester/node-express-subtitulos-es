@@ -7,11 +7,12 @@ var express = require('express'),
 	bodyParser = require('body-parser'),
 	routes = require('./routes'),
 	show = require('./routes/show'),
-	fs = require ('fs'),
-	app = express(), tmpFolder;
+	fs = require('fs'),
+	app = express(),
+	tmpFolder;
 
 // setting tmp dir
-tmpFolder =  path.join(__dirname, 'tmp');
+tmpFolder = path.join(__dirname, 'tmp');
 // creating tmp folder if not exists
 if (!fs.existsSync(tmpFolder)) {
 	fs.mkdir(tmpFolder);
@@ -28,7 +29,7 @@ app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 //Injection of global variables
-app.use(function (req, res, next) {
+app.use(function(req, res, next) {
 	res.locals({
 		tmpFolder: tmpFolder
 	});
