@@ -13,3 +13,7 @@ public/bower_components
 
 # ST3 Project
 *.sublime-project
+*.sublime-workspace
+
+# Sensible information
+dev_commands.md

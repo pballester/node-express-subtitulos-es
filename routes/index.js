@@ -1,4 +1,5 @@
 var request = require('request'),
+	info = require("../modules/tvShowInfo"),
 	cheerio = require('cheerio');
 
 exports.index = function(req, res) {
@@ -24,6 +25,8 @@ exports.index = function(req, res) {
 			reResult = re.exec(cheerio(tvShows[i]).attr("href"));
 			if (reResult !== null) {
 				tvShowId = reResult[1];
+				/*if (i < 20)
+					info.getTvShowPosterUrl(cheerio(tvShows[i]).text(), function() {});*/
 				tvShowObject = {
 					title: cheerio(tvShows[i]).text(),
 					href: tvShowId

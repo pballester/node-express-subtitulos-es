@@ -8,7 +8,6 @@
     "public/bower_components"
   ],
   "dependencies": {
-    "listjs": "~1.1.1",
-    "bootstrap": "~3.1.1"
+    "listjs": "~1.1.1"
   }
 }
