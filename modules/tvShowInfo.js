@@ -1,5 +1,7 @@
 var mdb = require('moviedb')(process.env.API_KEY),
 	debug = require('debug')('node-express-subtitulos-es'),
+	request = require('request'),
+	cheerio = require('cheerio'),
 	POSTER_SIZE = 2;
 
 function getConfiguration(posterSize, callback) {
@@ -15,8 +17,7 @@ function getConfiguration(posterSize, callback) {
 /**
  * Get tvShow poster url or "default"
  * @param  {String}   tvShowName 
- * @param  {Function} callback
- * @return {String}
+ * @param  {Function} callback function with the poster url as parameter
  */
 exports.getTvShowPosterUrl = function(tvShowName, callback) {
 	getConfiguration(POSTER_SIZE, function(configObject) {
@@ -33,5 +34,33 @@ exports.getTvShowPosterUrl = function(tvShowName, callback) {
 			}
 			callback(img);
 		});
+	});
+}
+
+/**
+ * Gets the tvShow list
+ * @param  {Function} callback function with the tvShow list object as a parameter
+ */
+exports.getTvShowList = function(callback) {
+	var url = "http://www.subtitulos.es/series",
+		re = /\/(\d{1,})/,
+		tvShowsArray = [],
+		$, tvShows, reResult, tvShowId;
+
+	request(url, function(err, resp, body) {
+		$ = cheerio.load(body);
+		tvShows = $("a", "#showindex");
+		for (i = 0; i < tvShows.length; i++) {
+			reResult = re.exec(cheerio(tvShows[i]).attr("href"));
+			if (reResult !== null) {
+				tvShowId = reResult[1];
+				tvShowObject = {
+					title: cheerio(tvShows[i]).text(),
+					href: tvShowId
+				};
+				tvShowsArray.push(tvShowObject);
+			}
+		}
+		callback(tvShowsArray);
 	});
 }

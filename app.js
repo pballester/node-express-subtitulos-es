@@ -4,9 +4,11 @@ var express = require('express'),
 	serveStatic = require('serve-static'),
 	bodyParser = require('body-parser'),
 	fs = require('fs'),
-	router = require('./router'),
 	app = express(),
-	tmpFolder;
+	tmpFolder,
+	models,
+	mongoose = require('mongoose'),
+	debug = require('debug')('node-express-subtitulos-es');
 
 // setting tmp dir
 tmpFolder = path.join(__dirname, 'tmp');
@@ -28,6 +30,13 @@ app.use(bodyParser.urlencoded({
 
 app.use(serveStatic(path.join(__dirname, 'public')));
 
+//Preparing DB
+mongoose.connect(process.env.DB_URI, function(err, res) {
+    if(err) throw err;
+    debug('Connected to Database');
+});
+models = require('./models/tvShow')(app, mongoose);
+
 //Injection of global variables
 app.use(function(req, res, next) {
 	res.locals.tmpFolder = tmpFolder;
@@ -35,6 +44,7 @@ app.use(function(req, res, next) {
 });
 
 //Router declaration
+var router = require('./router');
 app.use('/', router);
 
 /// catch 404 and forwarding to error handler
