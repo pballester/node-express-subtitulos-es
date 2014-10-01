@@ -4,25 +4,58 @@ var mongoose = require('mongoose'),
 	debug = require('debug')('node-express-subtitulos-es');
 
 exports.test = function(req, response) {
-	var tvshow = "";
+	var tvshow = "",
+        MAX_REQUESTS = 20;
 
     info.getTvShowList(function(tvShowsArray) {
-        for (var i = tvShowsArray.length - 1; i >= 0; i--) {
-            saveTvShowInDB(tvShowsArray[i].title, tvShowsArray[i].href);
-        }
+        saveArraySliced(tvShowsArray, 0, MAX_REQUESTS, MAX_REQUESTS);
     });
 
-    function saveTvShowInDB(title, href) {
-        info.getTvShowPosterUrl(title, function(posterUrl) {
+    function saveArraySliced(tvShowsArray, lowerIndex, upperIndex, sliceSize) {
+        debug("------------------> SAVING "+lowerIndex+" to "+upperIndex);
+        upperIndex = sliceSize > tvShowsArray.length ? tvShowsArray.length : upperIndex;
+        var tvShowArrayPart = tvShowsArray.slice(lowerIndex, upperIndex);
+        saveTvShowsArrayInDB(tvShowArrayPart, function() {
+            if (upperIndex === tvShowsArray.length) {
+                return;
+            }
+            lowerIndex += sliceSize;
+            if (lowerIndex > tvShowsArray.length) {
+                lowerIndex = tvShowsArray.length - lowerIndex;
+            }
+            upperIndex += sliceSize;
+            saveArraySliced(tvShowsArray, lowerIndex, upperIndex, sliceSize);
+        });
+    }
+
+    function saveTvShowInDB(tvShowObject, callback) {
+        info.getTvShowPosterUrl(tvShowObject.title, function(posterUrl) {
             tvshow = new tvShow({
-                title:    title,
-                href:     href,
+                title:    tvShowObject.title,
+                href:     tvShowObject.href,
                 poster:   posterUrl
             });
             tvshow.save(function(err, tvshow) {
                 if(err) debug("TVShow "+ tvshow.title + " not added to DB!! :'(");
                 debug("TVShow "+ tvshow.title + " added to DB");
+                callback();
             });
         });
+    }
+
+    function saveTvShowsArrayInDB(tvShowsArray, callback) {
+        var saved = 0
+        var timerId = setInterval(function() {
+            if (tvShowsArray.length === saved) {
+                clearInterval(timerId);
+                debug("Pack saved!");
+                callback();
+            }
+        }, 500);        
+        for (var i = tvShowsArray.length - 1; i >= 0; i--) {
+            saveTvShowInDB(tvShowsArray[i],function() {
+                saved++;
+            });
+        }
     }
 };
