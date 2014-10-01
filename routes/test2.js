@@ -12,11 +12,12 @@ exports.test = function(req, response) {
     });
 
     function saveArraySliced(tvShowsArray, lowerIndex, upperIndex, sliceSize) {
-        debug("------------------> SAVING "+lowerIndex+" to "+upperIndex);
+        debug("------------------> SAVING "+lowerIndex+" to "+upperIndex+ " of "+tvShowsArray.length);
         upperIndex = sliceSize > tvShowsArray.length ? tvShowsArray.length : upperIndex;
         var tvShowArrayPart = tvShowsArray.slice(lowerIndex, upperIndex);
         saveTvShowsArrayInDB(tvShowArrayPart, function() {
             if (upperIndex === tvShowsArray.length) {
+                debug("Finished array processing!");
                 return;
             }
             lowerIndex += sliceSize;

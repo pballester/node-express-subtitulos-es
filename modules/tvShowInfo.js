@@ -6,6 +6,13 @@ var mdb = require('moviedb')(process.env.API_KEY),
 
 function getConfiguration(posterSize, callback) {
 	mdb.configuration(function(err, configRes) {
+		if (err) {
+			debug("Error getting configuration from TMDB");
+			setTimeout(function() {
+				getConfiguration(posterSize, callback);
+			},1000);
+			return;
+		}
 		var configObject = {
 			base_url: configRes["images"]["base_url"],
 			poster_size: configRes["images"]["poster_sizes"][posterSize]
