@@ -2,10 +2,11 @@
 
 var debug = require('debug')('node-express-subtitulos-es'),
 	app = require('../app'),
+	ip = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1',
 	server;
 
-app.set('port', process.env.PORT || 80);
+app.set('port', process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 80);
 
-server = app.listen(app.get('port'), function() {
+server = app.listen(app.get('port'), ip, function() {
 	debug('Express server listening on port ' + server.address().port);
 });
