@@ -5,13 +5,10 @@ var express = require('express'),
 	bodyParser = require('body-parser'),
 	fs = require('fs'),
 	app = express(),
-	tmpFolder,
-	models,
+	tmpFolder = path.join(__dirname, 'tmp'),
 	mongoose = require('mongoose'),
 	debug = require('debug')('node-express-subtitulos-es');
 
-// setting tmp dir
-tmpFolder = path.join(__dirname, 'tmp');
 // creating tmp folder if not exists
 if (!fs.existsSync(tmpFolder)) {
 	fs.mkdir(tmpFolder);
@@ -35,7 +32,7 @@ mongoose.connect(process.env.DB_URI, function(err, res) {
     if(err) throw err;
     debug('Connected to Database');
 });
-models = require('./models/tvShow')(app, mongoose);
+var models = require('./models/tvShow')(app, mongoose);
 
 //Injection of global variables
 app.use(function(req, res, next) {

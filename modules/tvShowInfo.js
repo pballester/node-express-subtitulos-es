@@ -110,9 +110,9 @@ exports.getTvShowSeasons = function(tvShowId, callback) {
 
 /**
  * Gets subtitle list
- * @param  {Integer}   tvShowId    
- * @param  {Integer}   tvShowSeason 
- * @param  {String}   lang         
+ * @param  {Integer}   tvShowId
+ * @param  {Integer}   tvShowSeason
+ * @param  {String}    lang
  * @param  {Function} callback function with the subtitle list as parameter
  */
 exports.getSubtitleFiles = function(tvShowId, tvShowSeason, lang, callback) {
