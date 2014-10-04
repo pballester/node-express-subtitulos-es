@@ -4,46 +4,29 @@ var request = require('request'),
 	async = require('async'),
 	path = require('path'),
 	fs = require('fs'),
+	tvShowInfo = require("../modules/tvShowInfo"),
 	admZip = require('adm-zip');
 
 exports.show = function(req, res) {
-	var urlToGetSeasons = "http://www.subtitulos.es/show/" + req.params.id,
-		reSeason = /\,(\d{1,})\)/,
-		arrayFilesToDownload = [],
+	var arrayFilesToDownload = [],
 		downloadCounter = 0,
-		reResult, $, seasons, urlToGetDownloads, i, zip;
-	//Gets the seasons of the tvShow
-	debug("Searching seasons for tvShow: " + req.params.id);
-	request(urlToGetSeasons, function(err, resp, body) {
-		if (err) {
-			throwError("Conection error");
-			return;
-		}
-		$ = cheerio.load(body);
-		reResult = reSeason.exec($("body").attr("onload"));
-		if (reResult !== null) {
-			seasons = reResult[1];
-			debug("Found " + seasons + " seasons for tvShow: " + req.params.id);
-			//Gets the download page of the subtitles
-			urlToGetDownloads = "http://www.subtitulos.es/ajax_loadShow.php?show=" + req.params.id + "&season=" + seasons;
-			request(urlToGetDownloads, function(err, resp, body) {
-				if (err) {
-					throwError("Conection error");
-					return;
-				}
-				arrayFilesToDownload = getFilesToDownload(body);
+		reResult, $, seasons, i, zip;
+
+	tvShowInfo.getTvShowSeasons(req.params.id, function(seasonsNumber) {
+		seasons = seasonsNumber;
+		if (seasons !== null) {
+			tvShowInfo.getSubtitleFiles(req.params.id, seasons, req.params.lang, function(filesToDownload) {
+				arrayFilesToDownload = filesToDownload;
 				if (arrayFilesToDownload.length > 0) {
 					async.series({
 						downloadSubtitleFiles: downloadSubtitleFiles,
 						createZipFile: createZipFile
 					});
 				} else {
-					//No substitles found
 					throwError("No subtitles found");
 				}
 			});
 		} else {
-			//No seasons found
 			throwError("No seasons found");
 		}
 	});
@@ -55,43 +38,6 @@ exports.show = function(req, res) {
 			message: error.message,
 			error: error
 		});
-	}
-
-	function getFilesToDownload(body) {
-		var reLang = /^Español \(España\)$|^Español$/,
-			objectLanguages = [{
-				value: "esp",
-				regExp: /^Español \(España\)$|^Español$/
-			}, {
-				value: "lat",
-				regExp: /^Español \(Latinoamérica\)$|^Español$/
-			}, {
-				value: "eng",
-				regExp: /^English$|^English \(US\)$/
-			}],
-			languageDomObjects, fileDownloadObject;
-		for (i = 0; i < objectLanguages.length; i++) {
-			if (objectLanguages[i].value === req.params.lang) {
-				reLang = objectLanguages[i].regExp;
-				debug("Selected languange : " + reLang);
-				break;
-			}
-		}
-		$ = cheerio.load(body);
-		languageDomObjects = $(".language");
-		for (i = 0; i < languageDomObjects.length; i++) {
-			if (reLang.test(cheerio(languageDomObjects[i]).text().trim()) && cheerio(languageDomObjects[i]).parent().find("a").length > 0) {
-				fileDownloadObject = {
-					url: cheerio(languageDomObjects[i]).parent().find("a").attr("href"),
-					version: cheerio(languageDomObjects[i]).parent().prevAll().filter(function() {
-						return cheerio(this).children("td.newsClaro[colspan=3]").length > 0
-					}).first().text().trim()
-				}
-				arrayFilesToDownload.push(fileDownloadObject);
-			}
-		}
-		debug("Found " + arrayFilesToDownload.length + " subtitles for tvShow: " + req.params.id);
-		return arrayFilesToDownload;
 	}
 
 	function downloadSubtitleFiles(callback) {
