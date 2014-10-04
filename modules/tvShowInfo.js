@@ -7,7 +7,7 @@ var mdb = require('moviedb')(process.env.API_KEY),
 function getConfiguration(posterSize, callback) {
 	mdb.configuration(function(err, configRes) {
 		if (err) {
-			debug("Error getting configuration from TMDB");
+			debug("Error getting configuration from TMDB :'(");
 			setTimeout(function() {
 				getConfiguration(posterSize, callback);
 			},1000);
