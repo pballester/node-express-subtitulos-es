@@ -28,7 +28,7 @@ app.use(bodyParser.urlencoded({
 app.use(serveStatic(path.join(__dirname, 'public')));
 
 //Preparing DB
-mongoose.connect(process.env.OPENSHIFT_MONGODB_DB_URL || process.env.DB_URI, function(err, res) {
+mongoose.connect(process.env.OPENSHIFT_MONGODB_DB_URL + "subtitledownloader", function(err, res) {
     if(err) throw err;
     debug('Connected to Database');
 });
