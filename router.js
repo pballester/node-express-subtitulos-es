@@ -1,13 +1,15 @@
 var express = require('express'),
 	router = express.Router(),
 	index = require('./routes/index'),
-	show = require('./routes/show'),
-	test = require('./routes/test'),
-	test2 = require('./routes/test2');
+	languages = require('./routes/languages'),
+	tvShows = require('./routes/tvShows'),
+	download = require('./routes/download');
 
-router.get('/', index.index);
-router.get('/show/:id/:lang', show.show);
-router.get('/test', test.test);
-router.get('/test2', test2.test);
+router.get("", index.index);
+router.get("/api/tvShows/", tvShows.tvShows);
+router.get("/api/tvShows/:ini/", tvShows.tvShows);
+router.get("/api/tvShows/:ini/:fin/", tvShows.tvShows);
+router.get("/api/languages", languages.languages);
+router.get("/api/download/:id/:lang/:season", download.download);
 
 module.exports = router;

@@ -1,90 +1,13 @@
-var mdb = require('moviedb')(process.env.API_KEY),
-	debug = require('debug')('node-express-subtitulos-es'),
+var debug = require('debug')('node-express-subtitulos-es'),
 	request = require('request'),
-	cheerio = require('cheerio'),
-	POSTER_SIZE = 2;
-
-/**
- * Gets config object of TMDB
- * @param  {INT}   posterSize Poster size
- * @param  {Function} callback   callback function with the poster url as parameter
- */
-function getConfiguration(posterSize, callback) {
-	mdb.configuration(function(err, configRes) {
-		if (err) {
-			debug("Error getting configuration from TMDB :'(");
-			setTimeout(function() {
-				getConfiguration(posterSize, callback);
-			}, 1000);
-			return;
-		}
-		var configObject = {
-			base_url: configRes["images"]["base_url"],
-			poster_size: configRes["images"]["poster_sizes"][posterSize]
-		};
-		callback(configObject);
-	});
-}
-
-/**
- * Gets tvShow poster url or "default"
- * @param  {String}   tvShowName
- * @param  {Function} callback function with the poster url as parameter
- */
-exports.getTvShowPosterUrl = function(tvShowName, callback) {
-	getConfiguration(POSTER_SIZE, function(configObject) {
-		debug("Searching poster for tvShow: " + tvShowName);
-		mdb.searchTv({
-			query: tvShowName
-		}, function(err, res) {
-			var hasResults = res.results.length > 0,
-				img = "default";
-			if (hasResults) {
-				debug("Poster for tvShow " + res.results[0].name + " found!");
-				img = configObject.base_url + configObject.poster_size + res.results[0].poster_path;
-			} else {
-				debug("Poster for tvShow " + tvShowName + " not found :'(");
-			}
-			callback(img);
-		});
-	});
-}
-
-/**
- * Gets the tvShow list
- * @param  {Function} callback function with the tvShow list object as parameter
- */
-exports.getTvShowList = function(callback) {
-	var url = "http://www.subtitulos.es/series",
-		reId = /\/(\d{1,})/,
-		reRemoveparenthesis = /(\(.*\))/g,
-		tvShowsArray = [],
-		$, tvShows, reIdResult, tvShowId;
-
-	request(url, function(err, resp, body) {
-		$ = cheerio.load(body);
-		tvShows = $("a", "#showindex");
-		for (i = 0; i < tvShows.length; i++) {
-			reIdResult = reId.exec(cheerio(tvShows[i]).attr("href"));
-			if (reIdResult !== null) {
-				tvShowId = reIdResult[1];
-				tvShowObject = {
-					title: cheerio(tvShows[i]).text().replace(reRemoveparenthesis, ''),
-					href: tvShowId
-				};
-				tvShowsArray.push(tvShowObject);
-			}
-		}
-		callback(tvShowsArray);
-	});
-}
+	cheerio = require('cheerio');
 
 /**
  * Gets tvShow seasons number
  * @param  {Integer}   tvShowId
  * @param  {Function} callback function with de number of season as parameter or null
  */
-exports.getTvShowSeasons = function(tvShowId, callback) {
+getTvShowSeasons = function(tvShowId, tvShowObject, callback) {
 	var urlToGetSeasons = "http://www.subtitulos.es/show/" + tvShowId,
 		reSeason = /\,(\d{1,})\)/,
 		reResult, $;
@@ -101,10 +24,58 @@ exports.getTvShowSeasons = function(tvShowId, callback) {
 		if (reResult !== null) {
 			seasons = reResult[1];
 			debug("Found " + seasons + " seasons for tvShow: " + tvShowId);
-			callback(seasons);
+			callback(tvShowObject, seasons);
 			return;
 		}
 		callback(null);
+	});
+}
+
+/**
+ * Gets the tvShow list
+ * @param  {Function} callback function with the tvShow list object as parameter
+ */
+exports.getTvShowList = function(ini, fin, callback) {
+	var url = "http://www.subtitulos.es/series",
+		reId = /\/(\d{1,})/,
+		tvShowsArray = [],
+		counter = 0,
+		$, tvShows, reIdResult, tvShowId;
+
+	ini = ini || 0;
+
+	request(url, function(err, resp, body) {
+		$ = cheerio.load(body);
+		tvShows = $("a", "#showindex");
+
+		fin = fin || tvShows.length;
+		ini = ini > fin ? 0 : ini;
+		ini = ini > tvShows.length ? 0 : ini;
+		fin = fin > tvShows.length ? tvShows.length : fin;
+
+		if (ini === fin) {
+			callback(tvShowsArray);
+		}
+		for (i = ini; i < fin; i++) {
+			reIdResult = reId.exec(cheerio(tvShows[i]).attr("href"));
+			if (reIdResult !== null) {
+				tvShowId = reIdResult[1];
+				tvShowObject = {
+					title: cheerio(tvShows[i]).text(),
+					id: tvShowId
+				};
+				getTvShowSeasons(tvShowObject.id, tvShowObject, function(tvShowObject, seasons) {
+					counter++;
+					tvShowObject.seasons = seasons;
+					tvShowsArray.push(tvShowObject);
+					if (counter === (fin - ini)) {
+						callback(tvShowsArray);
+					}
+				});
+			} else {
+				counter++;
+			}
+		}
 	});
 }
 
@@ -134,7 +105,7 @@ exports.getSubtitleFiles = function(tvShowId, tvShowSeason, lang, callback) {
 	request(urlToGetDownloads, function(err, resp, body) {
 		if (err) {
 			debug("Conection error");
-			callback(arrayFilesToDownload);
+			callback(null);
 			return;
 		}
 		for (i = 0; i < objectLanguages.length; i++) {

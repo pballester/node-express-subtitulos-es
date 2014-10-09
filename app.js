@@ -6,7 +6,6 @@ var express = require('express'),
 	fs = require('fs'),
 	app = express(),
 	tmpFolder = path.join(__dirname, 'tmp'),
-	mongoose = require('mongoose'),
 	debug = require('debug')('node-express-subtitulos-es');
 
 // creating tmp folder if not exists
@@ -27,13 +26,6 @@ app.use(bodyParser.urlencoded({
 
 app.use(serveStatic(path.join(__dirname, 'public')));
 
-//Preparing DB
-mongoose.connect(process.env.OPENSHIFT_MONGODB_DB_URL + "subtitledownloader", function(err, res) {
-    if(err) throw err;
-    debug('Connected to Database');
-});
-var models = require('./models/tvShow')(app, mongoose);
-
 //Injection of global variables
 app.use(function(req, res, next) {
 	res.locals.tmpFolder = tmpFolder;
@@ -44,30 +36,9 @@ app.use(function(req, res, next) {
 var router = require('./router');
 app.use('/', router);
 
-/// catch 404 and forwarding to error handler
+/// catch * and forwards to home
 app.use(function(req, res, next) {
-	var err = new Error('Not Found');
-	err.status = 404;
-	next(err);
-});
-
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-	app.use(function(err, req, res, next) {
-		res.render('error', {
-			message: err.message,
-			error: err
-		});
-	});
-}
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-	res.render('error', {
-		message: err.message,
-		error: {}
-	});
+	res.redirect('/');
 });
 
 module.exports = app;

@@ -34,7 +34,7 @@ function downloadSubtitle(fileToDownload, zip, total, callback) {
 		fileName = "";
 		if (err) {
 			debug("Error downloading subtitle with url: " + options.url + " " + err);
-			return;
+			callback();
 		}
 		if (resp.headers['content-disposition'] !== null) {
 			reResult = reFileName.exec(resp.headers['content-disposition']);
