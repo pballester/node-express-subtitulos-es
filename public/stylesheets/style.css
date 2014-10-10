@@ -6,3 +6,8 @@ body {
 a {
   color: #00B7FF;
 }
+
+li {
+	font-weight: bolder;
+	padding: 10px;
+}
