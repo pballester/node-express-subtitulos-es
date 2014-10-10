@@ -1,4 +1,4 @@
-Subtitulos.es subtitle downloader
+Subtitulos.es subtitle downloader API
 ==========================
 Download entire season's subtitles in a zip file
 
